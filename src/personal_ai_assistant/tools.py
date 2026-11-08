@@ -212,7 +212,7 @@ class ToolManager:
             approval = Approval(
                 id=str(uuid4()),
                 tool_name=name,
-                arguments_json=parsed.model_dump_json(),
+                arguments_json=json.dumps(parsed.model_dump(mode="json", exclude_unset=True)),
                 token_hash=hashlib.sha256(token.encode()).hexdigest(),
                 status="pending",
                 expires_at=to_iso(utcnow() + timedelta(seconds=settings.approval_ttl_seconds)),
@@ -225,7 +225,7 @@ class ToolManager:
                 "approval_id": approval.id,
                 "confirmation_token": token,
                 "proposed_action": name,
-                "proposed_changes": parsed.model_dump(mode="json"),
+                "proposed_changes": parsed.model_dump(mode="json", exclude_unset=True),
                 "expires_at": approval.expires_at,
             }
         try:
