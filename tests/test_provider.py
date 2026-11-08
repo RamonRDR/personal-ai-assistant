@@ -113,10 +113,14 @@ def test_llm_tool_call_limit_is_enforced(db, monkeypatch):
     monkeypatch.setattr(settings, "max_tool_calls", 1)
     enable_fake_provider(
         monkeypatch,
-        [provider_message(calls=[
-            tool_call("create_task", {"title": "First"}, "one"),
-            tool_call("create_task", {"title": "Second"}, "two"),
-        ])],
+        [
+            provider_message(
+                calls=[
+                    tool_call("create_task", {"title": "First"}, "one"),
+                    tool_call("create_task", {"title": "Second"}, "two"),
+                ]
+            )
+        ],
     )
     result = respond(db, "Create multiple tasks")
     assert result["status"] == "limit_reached"

@@ -145,6 +145,7 @@ def test_tool_catalog_exposes_risk(client):
     assert risks["delete_task"] == "sensitive"
     assert risks["list_tasks"] == "read"
 
+
 def test_remote_client_is_rejected_even_for_health():
     from fastapi.testclient import TestClient
 
