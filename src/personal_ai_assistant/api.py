@@ -6,7 +6,6 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,8 +15,13 @@ from personal_ai_assistant.config import settings
 from personal_ai_assistant.db import get_db
 from personal_ai_assistant.models import Approval, Message, ToolExecution
 from personal_ai_assistant.schemas import (
-    ApprovalDecision, ChatInput, EventCreate, EventUpdate, ReminderCreate,
-    TaskCreate, TaskUpdate,
+    ApprovalDecision,
+    ChatInput,
+    EventCreate,
+    EventUpdate,
+    ReminderCreate,
+    TaskCreate,
+    TaskUpdate,
 )
 from personal_ai_assistant.tools import manager, public_catalog
 
@@ -34,16 +38,17 @@ async def restrict_to_loopback(request: Request, call_next):
     client = request.client.host if request.client else ""
     # Host header does not establish locality. The socket peer does.
     if client not in ("127.0.0.1", "::1", "localhost", "testclient"):
-        return JSONResponse(status_code=403, content={
-            "detail": "This demo accepts local connections only"
-        })
+        return JSONResponse(
+            status_code=403, content={"detail": "This demo accepts local connections only"}
+        )
     return await call_next(request)
 
 
 @app.get("/", include_in_schema=False)
 def home():
-    return FileResponse(Path(__file__).parent / "static" / "index.html",
-                        headers={"Cache-Control": "no-store"})
+    return FileResponse(
+        Path(__file__).parent / "static" / "index.html", headers={"Cache-Control": "no-store"}
+    )
 
 
 @app.get("/health")
@@ -76,9 +81,11 @@ def get_task(task_id: int, db: Db):
 
 @app.patch("/api/tasks/{task_id}")
 def update_task(task_id: int, data: TaskUpdate, db: Db):
-    return manager.invoke(db, "update_task", {
-        "task_id": task_id, "patch": data.model_dump(exclude_unset=True, mode="json")
-    })
+    return manager.invoke(
+        db,
+        "update_task",
+        {"task_id": task_id, "patch": data.model_dump(exclude_unset=True, mode="json")},
+    )
 
 
 @app.post("/api/tasks/{task_id}/complete")
@@ -103,9 +110,11 @@ def create_event(data: EventCreate, db: Db):
 
 @app.patch("/api/events/{event_id}")
 def update_event(event_id: int, data: EventUpdate, db: Db):
-    return manager.invoke(db, "update_event", {
-        "event_id": event_id, "patch": data.model_dump(exclude_unset=True, mode="json")
-    })
+    return manager.invoke(
+        db,
+        "update_event",
+        {"event_id": event_id, "patch": data.model_dump(exclude_unset=True, mode="json")},
+    )
 
 
 @app.delete("/api/events/{event_id}")
@@ -140,18 +149,27 @@ def chat(data: ChatInput, db: Db):
 
 @app.get("/api/history")
 def history(db: Db):
-    rows = db.scalars(select(Message).order_by(Message.id.desc()).limit(
-        settings.history_limit)).all()
-    return [{"role": x.role, "content": x.content,
-             "created_at": x.created_at} for x in reversed(rows)]
+    rows = db.scalars(
+        select(Message).order_by(Message.id.desc()).limit(settings.history_limit)
+    ).all()
+    return [
+        {"role": x.role, "content": x.content, "created_at": x.created_at} for x in reversed(rows)
+    ]
 
 
 @app.get("/api/approvals")
 def pending_approvals(db: Db):
     # Tokens are only returned once, directly to the proposing user, never from a list.
     rows = db.scalars(select(Approval).where(Approval.status == "pending")).all()
-    return [{"approval_id": x.id, "tool_name": x.tool_name,
-             "status": x.status, "expires_at": x.expires_at} for x in rows]
+    return [
+        {
+            "approval_id": x.id,
+            "tool_name": x.tool_name,
+            "status": x.status,
+            "expires_at": x.expires_at,
+        }
+        for x in rows
+    ]
 
 
 @app.post("/api/approvals/{approval_id}/approve")
@@ -166,7 +184,8 @@ def reject(approval_id: str, data: ApprovalDecision, db: Db):
 
 @app.get("/api/audit")
 def audit(db: Db):
-    rows = db.scalars(select(ToolExecution).order_by(
-        ToolExecution.id.desc()).limit(50)).all()
-    return [{"tool": x.name, "outcome": x.outcome, "time": x.created_at,
-             "approval_id": x.approval_id} for x in rows]
+    rows = db.scalars(select(ToolExecution).order_by(ToolExecution.id.desc()).limit(50)).all()
+    return [
+        {"tool": x.name, "outcome": x.outcome, "time": x.created_at, "approval_id": x.approval_id}
+        for x in rows
+    ]

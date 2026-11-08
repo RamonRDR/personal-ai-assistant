@@ -7,9 +7,15 @@ from fastapi import HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from personal_ai_assistant.db import from_iso, to_iso, utcnow
+from personal_ai_assistant.db import to_iso, utcnow
 from personal_ai_assistant.models import Event, Reminder, Task
-from personal_ai_assistant.schemas import EventCreate, EventUpdate, ReminderCreate, TaskCreate, TaskUpdate
+from personal_ai_assistant.schemas import (
+    EventCreate,
+    EventUpdate,
+    ReminderCreate,
+    TaskCreate,
+    TaskUpdate,
+)
 
 
 def not_found(resource: str) -> HTTPException:
@@ -21,7 +27,12 @@ def as_dict(obj) -> dict:
 
 
 def create_task(db: Session, data: TaskCreate) -> dict:
-    task = Task(**{**data.model_dump(exclude={"due_at"}), "due_at": to_iso(data.due_at) if data.due_at else None})
+    task = Task(
+        **{
+            **data.model_dump(exclude={"due_at"}),
+            "due_at": to_iso(data.due_at) if data.due_at else None,
+        }
+    )
     db.add(task)
     db.flush()
     return as_dict(task)
@@ -102,16 +113,17 @@ def update_event(db: Session, event_id: int, data: EventUpdate) -> dict:
     for field in ("start_at", "end_at"):
         value = present[field]
         schedule[field] = (
-            value if field in updates
-            else datetime.fromisoformat(value).astimezone(target_zone)
+            value if field in updates else datetime.fromisoformat(value).astimezone(target_zone)
         )
-    event = EventCreate.model_validate({
-        "title": present["title"],
-        "description": present["description"],
-        **schedule,
-        "timezone": present["timezone"],
-        "location": present["location"],
-    })
+    event = EventCreate.model_validate(
+        {
+            "title": present["title"],
+            "description": present["description"],
+            **schedule,
+            "timezone": present["timezone"],
+            "location": present["location"],
+        }
+    )
     for key, value in updates.items():
         if key in ("start_at", "end_at"):
             value = to_iso(value)
@@ -139,8 +151,10 @@ def create_reminder(db: Session, data: ReminderCreate) -> dict:
     if data.event_id and not db.get(Event, data.event_id):
         raise not_found("Event")
     reminder = Reminder(
-        message=data.message, scheduled_at=to_iso(data.scheduled_at),
-        task_id=data.task_id, event_id=data.event_id
+        message=data.message,
+        scheduled_at=to_iso(data.scheduled_at),
+        task_id=data.task_id,
+        event_id=data.event_id,
     )
     db.add(reminder)
     db.flush()
@@ -178,24 +192,34 @@ def daily_summary(db: Session, day: date, timezone: str = "UTC") -> dict:
     end = datetime.combine(day + timedelta(days=1), time.min, tzinfo=zone).astimezone(UTC)
     a, b = to_iso(start), to_iso(end)
     tasks = [
-        as_dict(x) for x in db.scalars(
+        as_dict(x)
+        for x in db.scalars(
             select(Task).where(Task.due_at >= a, Task.due_at < b).order_by(Task.due_at)
         ).all()
     ]
     events = [
-        as_dict(x) for x in db.scalars(
+        as_dict(x)
+        for x in db.scalars(
             select(Event).where(Event.start_at >= a, Event.start_at < b).order_by(Event.start_at)
         ).all()
     ]
     reminders = [
-        as_dict(x) for x in db.scalars(
-            select(Reminder).where(
-                Reminder.scheduled_at >= a, Reminder.scheduled_at < b,
+        as_dict(x)
+        for x in db.scalars(
+            select(Reminder)
+            .where(
+                Reminder.scheduled_at >= a,
+                Reminder.scheduled_at < b,
                 Reminder.delivered_at.is_(None),
-            ).order_by(Reminder.scheduled_at)
+            )
+            .order_by(Reminder.scheduled_at)
         ).all()
     ]
-    return {"day": day.isoformat(), "timezone": timezone, "tasks": tasks,
-            "events": events, "reminders": reminders, "counts": {
-                "tasks": len(tasks), "events": len(events), "reminders": len(reminders)
-            }}
+    return {
+        "day": day.isoformat(),
+        "timezone": timezone,
+        "tasks": tasks,
+        "events": events,
+        "reminders": reminders,
+        "counts": {"tasks": len(tasks), "events": len(events), "reminders": len(reminders)},
+    }

@@ -32,11 +32,13 @@ def make_engine(url: str):
         url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {}
     )
     if url.startswith("sqlite"):
+
         @event.listens_for(engine, "connect")
         def set_sqlite_fk(connection, _):
             cursor = connection.cursor()
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
+
     return engine
 
 

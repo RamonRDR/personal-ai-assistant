@@ -1,6 +1,6 @@
 """Bounded schemas for all public mutations and tool arguments."""
 
-from datetime import date, datetime
+from datetime import date
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 

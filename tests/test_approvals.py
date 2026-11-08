@@ -21,7 +21,7 @@ def request_delete(client, identifier):
 def decide(client, item, action="approve", token=None):
     return client.post(
         f"/api/approvals/{item['approval_id']}/{action}",
-        json={"confirmation_token": token or item["confirmation_token"]}
+        json={"confirmation_token": token or item["confirmation_token"]},
     )
 
 
@@ -70,10 +70,15 @@ def test_update_requires_approval(client):
 
 
 def test_event_delete_requires_approval(client):
-    event = client.post("/api/events", json={
-        "title": "Coffee", "start_at": "2026-11-08T12:00:00+00:00",
-        "end_at": "2026-11-08T13:00:00+00:00", "timezone": "UTC"
-    }).json()["data"]
+    event = client.post(
+        "/api/events",
+        json={
+            "title": "Coffee",
+            "start_at": "2026-11-08T12:00:00+00:00",
+            "end_at": "2026-11-08T13:00:00+00:00",
+            "timezone": "UTC",
+        },
+    ).json()["data"]
     result = client.delete(f"/api/events/{event['id']}").json()
     assert result["status"] == "approval_required"
     assert len(client.get("/api/events").json()) == 1
