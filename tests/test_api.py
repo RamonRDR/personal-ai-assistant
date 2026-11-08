@@ -144,3 +144,11 @@ def test_tool_catalog_exposes_risk(client):
     risks = {t["name"]: t["risk"] for t in tools}
     assert risks["delete_task"] == "sensitive"
     assert risks["list_tasks"] == "read"
+
+def test_remote_client_is_rejected_even_for_health():
+    from fastapi.testclient import TestClient
+
+    from personal_ai_assistant.api import app
+
+    with TestClient(app, client=("203.0.113.99", 1234)) as external:
+        assert external.get("/health").status_code == 403
