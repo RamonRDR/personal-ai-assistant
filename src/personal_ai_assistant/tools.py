@@ -206,7 +206,7 @@ class ToolManager:
         except ValidationError:
             execution_log(db, name, "invalid_arguments")
             db.commit()
-            return {"status": "error", "error": "Invalid tool arguments"}
+            return {"status": "error", "tool": name, "error": "Invalid tool arguments"}
         if spec.risk == "sensitive" and not approved:
             token = secrets.token_urlsafe(32)
             approval = Approval(
