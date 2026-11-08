@@ -95,11 +95,20 @@ def update_event(db: Session, event_id: int, data: EventUpdate) -> dict:
             raise HTTPException(422, detail=f"{key} cannot be null")
         present[key] = value
     # Revalidate the entire combined event, including timezone and DST offsets.
+    target_zone = ZoneInfo(present["timezone"])
+    # The persisted instants are UTC. For unchanged fields, reconstruct
+    # the original timezone before checking a changed named-zone setting.
+    schedule = {}
+    for field in ("start_at", "end_at"):
+        value = present[field]
+        schedule[field] = (
+            value if field in updates
+            else datetime.fromisoformat(value).astimezone(target_zone)
+        )
     event = EventCreate.model_validate({
         "title": present["title"],
         "description": present["description"],
-        "start_at": present["start_at"],
-        "end_at": present["end_at"],
+        **schedule,
         "timezone": present["timezone"],
         "location": present["location"],
     })

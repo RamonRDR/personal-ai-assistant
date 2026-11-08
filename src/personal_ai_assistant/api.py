@@ -129,7 +129,7 @@ def deliver_reminder(reminder_id: int, db: Db):
 
 
 @app.get("/api/summary")
-def summary(db: Db, day: date = Query(...), timezone: str = "UTC"):
+def summary(db: Db, day: Annotated[date, Query()], timezone: str = "UTC"):
     return services.daily_summary(db, day, timezone)
 
 
