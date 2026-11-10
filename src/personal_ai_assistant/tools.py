@@ -195,7 +195,6 @@ def sensitive_target(db: Session, name: str, parsed: BaseModel) -> Task | Event 
     raise ValueError("Unexpected sensitive tool")
 
 
-
 class ToolManager:
     def invoke(
         self,
