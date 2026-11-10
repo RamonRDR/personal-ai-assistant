@@ -2,6 +2,7 @@
 
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlsplit
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
@@ -33,14 +34,43 @@ app = FastAPI(
 )
 
 
+LOCAL_HOSTS = {
+    "127.0.0.1", "127.0.0.1:8000",
+    "localhost", "localhost:8000",
+    "[::1]", "[::1]:8000",
+}
+
+
 @app.middleware("http")
 async def restrict_to_loopback(request: Request, call_next):
     client = request.client.host if request.client else ""
-    # Host header does not establish locality. The socket peer does.
+    # Check both the socket peer and Host to resist DNS rebinding.
     if client not in ("127.0.0.1", "::1", "localhost", "testclient"):
-        return JSONResponse(
-            status_code=403, content={"detail": "This demo accepts local connections only"}
+        return JSONResponse(status_code=403, content={"detail": "Local connections only"})
+    host = request.headers.get("host", "")
+    if host not in LOCAL_HOSTS and not (client == "testclient" and host == "testserver"):
+        return JSONResponse(status_code=403, content={"detail": "Untrusted Host header"})
+
+    # Block cross-site Origin/Referer/Fetch Metadata, including read requests.
+    expected_origin = "http://" + host
+    origin = request.headers.get("origin")
+    referer = request.headers.get("referer")
+    fetch_site = request.headers.get("sec-fetch-site")
+    if (
+        (origin is not None and origin != expected_origin)
+        or (
+            referer is not None
+            and urlsplit(referer).scheme + "://" + urlsplit(referer).netloc != expected_origin
         )
+        or fetch_site in ("cross-site", "same-site")
+    ):
+        return JSONResponse(status_code=403, content={"detail": "Cross-origin request blocked"})
+
+    # This non-simple header requires a CORS preflight for hostile browser
+    # mutations, including bodyless POST. No permissive CORS is configured.
+    if request.method not in ("GET", "HEAD", "OPTIONS"):
+        if request.headers.get("x-local-request") != "1":
+            return JSONResponse(status_code=403, content={"detail": "Local request header required"})
     return await call_next(request)
 
 

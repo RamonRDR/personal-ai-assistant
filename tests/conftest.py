@@ -29,6 +29,6 @@ def client(db: Session):
         yield db
 
     app.dependency_overrides[get_db] = override_db
-    with TestClient(app) as test_client:
+    with TestClient(app, headers={"X-Local-Request": "1"}) as test_client:
         yield test_client
     app.dependency_overrides.clear()

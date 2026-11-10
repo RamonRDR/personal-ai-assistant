@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from personal_ai_assistant import services
 from personal_ai_assistant.config import settings
 from personal_ai_assistant.db import from_iso, to_iso, utcnow
-from personal_ai_assistant.models import Approval, ToolExecution
+from personal_ai_assistant.models import Approval, Event, Task, ToolExecution
 from personal_ai_assistant.schemas import (
     DaySummary,
     EventCreate,
@@ -186,6 +186,16 @@ def execution_log(db: Session, name: str, outcome: str, approval_id: str | None 
     db.add(ToolExecution(name=name, outcome=outcome, approval_id=approval_id))
 
 
+def sensitive_target(db: Session, name: str, parsed: BaseModel) -> Task | Event | None:
+    """Resolve a sensitive target for immutable-identity validation."""
+    if name.endswith("_task"):
+        return db.get(Task, parsed.task_id)
+    if name.endswith("_event"):
+        return db.get(Event, parsed.event_id)
+    raise ValueError("Unexpected sensitive tool")
+
+
+
 class ToolManager:
     def invoke(
         self,
@@ -195,6 +205,7 @@ class ToolManager:
         *,
         approved: bool = False,
         approval_id: str | None = None,
+        expected_resource_identity: str | None = None,
     ) -> dict:
         spec = REGISTRY.get(name)
         if spec is None:
@@ -208,12 +219,18 @@ class ToolManager:
             db.commit()
             return {"status": "error", "tool": name, "error": "Invalid tool arguments"}
         if spec.risk == "sensitive" and not approved:
+            resource = sensitive_target(db, name, parsed)
+            if resource is None:
+                execution_log(db, name, "missing_resource")
+                db.commit()
+                return {"status": "error", "tool": name, "error": "Resource not found"}
             token = secrets.token_urlsafe(32)
             approval = Approval(
                 id=str(uuid4()),
                 tool_name=name,
                 arguments_json=json.dumps(parsed.model_dump(mode="json", exclude_unset=True)),
                 token_hash=hashlib.sha256(token.encode()).hexdigest(),
+                resource_identity=resource.resource_identity,
                 status="pending",
                 expires_at=to_iso(utcnow() + timedelta(seconds=settings.approval_ttl_seconds)),
             )
@@ -229,6 +246,14 @@ class ToolManager:
                 "expires_at": approval.expires_at,
             }
         try:
+            if approved and spec.risk == "sensitive":
+                resource = sensitive_target(db, name, parsed)
+                if (
+                    expected_resource_identity is None
+                    or resource is None
+                    or resource.resource_identity != expected_resource_identity
+                ):
+                    raise HTTPException(409, detail="Approval target changed or no longer exists")
             data = spec.handler(db, parsed)
             execution_log(db, name, "success", approval_id)
             db.commit()
@@ -280,7 +305,14 @@ class ToolManager:
             execution_log(db, name, "rejected", approval_id)
             db.commit()
             return {"status": "rejected", "approval_id": approval_id}
-        result = self.invoke(db, name, arguments, approved=True, approval_id=approval_id)
+        result = self.invoke(
+            db,
+            name,
+            arguments,
+            approved=True,
+            approval_id=approval_id,
+            expected_resource_identity=approval.resource_identity,
+        )
         db.execute(
             update(Approval)
             .where(Approval.id == approval_id)

@@ -52,7 +52,7 @@ ul{padding-left:20px}li{margin-bottom:9px}code{color:#9ddfe0}
 const el=id=>document.getElementById(id);
 const chat=el("chat"), approvals=el("approvals");
 function line(text,kind){const d=document.createElement("div");d.className="line "+kind;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
-async function api(path,options={}){const r=await fetch(path,{...options,headers:{"Content-Type":"application/json",...(options.headers||{})}});let x=await r.json();if(!r.ok)throw Error(x.detail||"Request failed");return x;}
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{"Content-Type":"application/json","X-Local-Request":"1",...(options.headers||{})}});let x=await r.json();if(!r.ok)throw Error(x.detail||"Request failed");return x;}
 function fill(id,items,render){const list=el(id);list.replaceChildren();for(const item of items){const li=document.createElement("li");li.textContent=render(item);list.appendChild(li);}if(!items.length){const li=document.createElement("li");li.textContent="None";list.appendChild(li);}}
 async function refresh(){try{const [t,e,r,a,c]=await Promise.all([api("/api/tasks"),api("/api/events"),api("/api/reminders"),api("/api/audit"),api("/api/tools")]);fill("tasks",t,x=>"#"+x.id+" "+x.title+" ["+x.status+"]");fill("events",e,x=>x.title+" · "+x.start_at+" UTC");fill("reminders",r,x=>x.message+" · "+x.scheduled_at+" UTC");fill("audit",a.slice(0,6),x=>x.tool+" · "+x.outcome);el("toolcount").textContent=c.tools.length+" allowlisted tools";}catch(e){line(String(e),"assistant error");}}
 function showApproval(info){const box=document.createElement("div");box.className="pending";

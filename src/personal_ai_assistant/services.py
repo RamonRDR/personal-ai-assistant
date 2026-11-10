@@ -76,11 +76,13 @@ def delete_task(db: Session, task_id: int) -> dict:
     item = db.get(Task, task_id)
     if item is None:
         raise not_found("Task")
-    if db.scalar(select(Reminder.id).where(Reminder.task_id == task_id).limit(1)):
-        raise HTTPException(409, detail="Delete linked reminders first")
+    # Preserve reminder messages and schedule, but unlink this deleted parent.
+    detached = db.execute(
+        update(Reminder).where(Reminder.task_id == task_id).values(task_id=None)
+    ).rowcount
     db.delete(item)
     db.flush()
-    return {"deleted": True, "task_id": task_id}
+    return {"deleted": True, "task_id": task_id, "detached_reminders": detached}
 
 
 def create_event(db: Session, data: EventCreate) -> dict:
@@ -138,11 +140,13 @@ def delete_event(db: Session, event_id: int) -> dict:
     item = db.get(Event, event_id)
     if item is None:
         raise not_found("Event")
-    if db.scalar(select(Reminder.id).where(Reminder.event_id == event_id).limit(1)):
-        raise HTTPException(409, detail="Delete linked reminders first")
+    # Preserve the record and unlink the deleted event.
+    detached = db.execute(
+        update(Reminder).where(Reminder.event_id == event_id).values(event_id=None)
+    ).rowcount
     db.delete(item)
     db.flush()
-    return {"deleted": True, "event_id": event_id}
+    return {"deleted": True, "event_id": event_id, "detached_reminders": detached}
 
 
 def create_reminder(db: Session, data: ReminderCreate) -> dict:
