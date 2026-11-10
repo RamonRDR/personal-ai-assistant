@@ -2,8 +2,8 @@
 
 from datetime import date
 from pathlib import Path
-from urllib.parse import urlsplit
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -70,7 +70,9 @@ async def restrict_to_loopback(request: Request, call_next):
     # mutations, including bodyless POST. No permissive CORS is configured.
     if request.method not in ("GET", "HEAD", "OPTIONS"):
         if request.headers.get("x-local-request") != "1":
-            return JSONResponse(status_code=403, content={"detail": "Local request header required"})
+            return JSONResponse(
+                status_code=403, content={"detail": "Local request header required"}
+            )
     return await call_next(request)
 
 
