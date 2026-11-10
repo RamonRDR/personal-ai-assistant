@@ -39,7 +39,7 @@ def verify(junit_path: Path) -> None:
         base = badges
         if not text.startswith('<div align="center">'):
             raise ValueError(f"{path}: missing centered header")
-        if any(label not in text for label in READMES):
+        if any(label not in text for label in READMES if label != path):
             raise ValueError(f"{path}: missing language navigation")
         matches = PYTEST.findall(text)
         if matches != [str(passed)]:
