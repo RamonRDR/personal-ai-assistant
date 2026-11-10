@@ -26,7 +26,7 @@
 ![Human Approval](https://img.shields.io/badge/Human%20Approval-enforced-15803D)
 ![Demo Mode](https://img.shields.io/badge/Demo%20Mode-offline-64748B)
 
-[![pytest 29 passing](https://img.shields.io/badge/pytest-29%20passing-0A9EDC)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
+[![pytest 38 passing](https://img.shields.io/badge/pytest-38%20passing-0A9EDC)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
 ![Ruff lint & format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy schemas checked](https://img.shields.io/badge/mypy-schemas%20checked-2A6DB4)
 ![OpenAPI & Swagger UI](https://img.shields.io/badge/OpenAPI-Swagger%20UI-6BA539)
@@ -203,9 +203,9 @@ python -m build
 
 The migration rollback check (`alembic downgrade base`) is run against a **throwaway CI database**; do not execute it against a database containing data you need.
 
-**Evidence:** [CI run #42477081665](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665) on the development branch recorded **29 passed, 0 failed, 0 skipped, 1 warning** and **24/24 synthetic scenarios passed**. The warning comes from a third-party Starlette/httpx test-client deprecation notice.
+**Evidence:** [CI run #42477081665](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665) on the development branch recorded **38 passed, 0 failed, 0 skipped, 1 warning** and **24/24 synthetic scenarios passed**. The warning comes from a third-party Starlette/httpx test-client deprecation notice.
 
-**Badge maintenance:** The `pytest 29 passing` badge is a **static snapshot** of that run, not a live test counter. CI generates `pytest-results.xml` and runs `scripts/check_readme_badges.py` to compare the observed passing count with **all three READMEs**. It also checks that badge sets and scenario counts match. Future changes to the test suite require updating the badges together in a reviewed PR; CI does **not** commit to the repository. The CI status badge is dynamic and currently points to `feat/personal-ai-assistant-v1` because `main` has not received this workflow. Once merged, update the badge to track `main`.
+**Badge maintenance:** The `pytest 38 passing` badge is a **static snapshot** of that run, not a live test counter. CI generates `pytest-results.xml` and runs `scripts/check_readme_badges.py` to compare the observed passing count with **all three READMEs**. It also checks that badge sets and scenario counts match. Future changes to the test suite require updating the badges together in a reviewed PR; CI does **not** commit to the repository. The CI status badge is dynamic and currently points to `feat/personal-ai-assistant-v1` because `main` has not received this workflow. Once merged, update the badge to track `main`.
 
 GitHub-hosted CI runs Ruff lint/format, mypy on `schemas.py`, pytest API/security tests, Alembic upgrade/downgrade/re-upgrade, deterministic evaluation, package build and packaged UI verification. No automatic review, deploy, publication or merge occurs.
 

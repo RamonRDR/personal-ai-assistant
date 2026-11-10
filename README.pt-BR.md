@@ -26,7 +26,7 @@
 ![Human Approval](https://img.shields.io/badge/Human%20Approval-enforced-15803D)
 ![Demo Mode](https://img.shields.io/badge/Demo%20Mode-offline-64748B)
 
-[![pytest 29 passing](https://img.shields.io/badge/pytest-29%20passing-0A9EDC)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
+[![pytest 38 passing](https://img.shields.io/badge/pytest-38%20passing-0A9EDC)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
 ![Ruff lint & format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy schemas checked](https://img.shields.io/badge/mypy-schemas%20checked-2A6DB4)
 ![OpenAPI & Swagger UI](https://img.shields.io/badge/OpenAPI-Swagger%20UI-6BA539)
@@ -203,9 +203,9 @@ python -m build
 
 A reversão de migração (`alembic downgrade base`) ocorre com banco **descartável no CI**; não faça isso em banco que contenha dados importantes.
 
-**Evidência:** a [execução #42477081665](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665) registrou **29 aprovados, 0 falhas, 0 ignorados, 1 aviso** e **24/24 cenários sintéticos aprovados**. O aviso de depreciação vem de uma dependência de testes Starlette/httpx.
+**Evidência:** a [execução #42477081665](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665) registrou **38 aprovados, 0 falhas, 0 ignorados, 1 aviso** e **24/24 cenários sintéticos aprovados**. O aviso de depreciação vem de uma dependência de testes Starlette/httpx.
 
-**Manutenção dos badges:** `pytest 29 passing` é um **registro estático** de execução confirmada. O CI gera `pytest-results.xml` e executa `scripts/check_readme_badges.py` para comparar a contagem real com os **três READMEs** e conferir a igualdade de badges e a quantidade de cenários. Se os testes mudarem, atualize os badges nas três traduções em um PR revisado; o CI **não comita** automaticamente. O badge de status do CI é dinâmico e aponta para `feat/personal-ai-assistant-v1` porque a `main` ainda não recebeu o workflow. Após o merge autorizado, ajuste o badge para `main`.
+**Manutenção dos badges:** `pytest 38 passing` é um **registro estático** de execução confirmada. O CI gera `pytest-results.xml` e executa `scripts/check_readme_badges.py` para comparar a contagem real com os **três READMEs** e conferir a igualdade de badges e a quantidade de cenários. Se os testes mudarem, atualize os badges nas três traduções em um PR revisado; o CI **não comita** automaticamente. O badge de status do CI é dinâmico e aponta para `feat/personal-ai-assistant-v1` porque a `main` ainda não recebeu o workflow. Após o merge autorizado, ajuste o badge para `main`.
 
 O CI usa runners do GitHub e verifica Ruff lint/format, mypy em `schemas.py`, pytest de API/segurança, Alembic upgrade/downgrade/re-upgrade, avaliações determinísticas, build e presença da UI no pacote. Sem revisão, deploy, publicação ou merge automático.
 
