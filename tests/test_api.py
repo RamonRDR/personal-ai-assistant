@@ -172,7 +172,8 @@ def test_cross_site_origin_referer_and_fetch_metadata_rejected(client):
         {"Sec-Fetch-Site": "same-site"},
     ]
     for headers in bad_headers:
-        assert client.post("/api/tasks", json={"title": "Attack"}, headers=headers).status_code == 403
+        response = client.post("/api/tasks", json={"title": "Attack"}, headers=headers)
+        assert response.status_code == 403
         assert client.get("/api/tasks", headers=headers).status_code == 403
     assert client.get("/api/tasks").json() == []
 
