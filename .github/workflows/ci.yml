@@ -35,7 +35,9 @@ jobs:
       - name: Type validation
         run: mypy src/personal_ai_assistant/schemas.py
       - name: Pytest unit and API integration
-        run: pytest
+        run: pytest --junitxml=pytest-results.xml
+      - name: Verify README badge counts from pytest report
+        run: python scripts/check_readme_badges.py pytest-results.xml
       - name: Migration upgrade / downgrade / re-upgrade
         env:
           PA_DATABASE_URL: sqlite:///./ci-migrations.db

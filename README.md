@@ -1,112 +1,249 @@
-# Personal AI Assistant
+<div align="center">
 
-[![CI](https://github.com/RamonRDR/personal-ai-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/RamonRDR/personal-ai-assistant/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/Python-3.14-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+# Personal AI Assistant 🧠
 
-**English** | [Português](README.pt-BR.md) | [Español](README.es.md)
+**Turn everyday requests into real local actions, with human approval in control.**
 
-A **local-first tool-using assistant**, not a pretend chatbot. It persists tasks, calendar events, reminders, approval requests and a limited message history in SQLite. Sensitive mutations are proposed, never applied, until a human approves them with a single-use expiring token.
+**🇺🇸 English** · [🇧🇷 Português](README.pt-BR.md) · [🇪🇸 Español](README.es.md)
+
+[![CI](https://github.com/RamonRDR/personal-ai-assistant/actions/workflows/ci.yml/badge.svg?branch=feat%2Fpersonal-ai-assistant-v1)](https://github.com/RamonRDR/personal-ai-assistant/actions/workflows/ci.yml)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-blue)](https://www.python.org/)
+[![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+![FastAPI 0.115+](https://img.shields.io/badge/FastAPI-0.115%2B-009688)
+![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063)
+![Pydantic Settings](https://img.shields.io/badge/Pydantic-Settings-B72867)
+![SQLAlchemy 2](https://img.shields.io/badge/SQLAlchemy-2-red)
+![SQLite](https://img.shields.io/badge/SQLite-local%20database-003B57)
+![Alembic](https://img.shields.io/badge/Alembic-migrations-555555)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI-4051B5)
+![httpx](https://img.shields.io/badge/httpx-HTTP%20client-2A6FB1)
+![HTML & CSS](https://img.shields.io/badge/HTML%20%26%20CSS-local%20UI-E34F26)
+![Vanilla JavaScript](https://img.shields.io/badge/JavaScript-vanilla%20UI-F7DF1E)
+
+![Tool Calling](https://img.shields.io/badge/Tool%20Calling-structured-6959CD)
+![LLM Adapter Optional](https://img.shields.io/badge/LLM%20Adapter-optional-7C5AA3)
+![Human Approval](https://img.shields.io/badge/Human%20Approval-enforced-15803D)
+![Demo Mode](https://img.shields.io/badge/Demo%20Mode-offline-64748B)
+
+[![pytest 29 passing](https://img.shields.io/badge/pytest-29%20passing-0A9EDC)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
+![Ruff lint & format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
+![mypy schemas checked](https://img.shields.io/badge/mypy-schemas%20checked-2A6DB4)
+![OpenAPI & Swagger UI](https://img.shields.io/badge/OpenAPI-Swagger%20UI-6BA539)
+[![Synthetic Evals 24/24](https://img.shields.io/badge/Synthetic%20Evals-24%2F24%20passing-14815D)](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665)
+![Package Build](https://img.shields.io/badge/Package%20Build-CI%20verified-475569)
+
+</div>
+
+> **Project status:** Implemented on [draft PR #1](https://github.com/RamonRDR/personal-ai-assistant/pull/1), with passing GitHub Actions checks on `feat/personal-ai-assistant-v1`. Awaiting owner-authorized Codex Review; **not merged, deployed or connected to personal accounts**.
+
+A local-first personal assistant designed to demonstrate reliable **Python backend development, controlled automation, tool calling and applied AI integration**. It performs real operations through a small, auditable catalog of tools. Its offline demonstration is deterministic, while an optional LLM adapter allows structured natural-language tool calling when explicitly enabled.
+
+## Overview
+
+The browser and REST API share the same business services and SQLite database. Tasks, appointments, local reminders, short conversation history, human approval requests and tool outcomes are persisted. The interpreter never claims that a task was created or deleted without a real tool result.
+
+The default demo requires no paid provider, external account or background worker. This is a **single-user local development application**, not an internet-facing SaaS.
 
 ## Features
 
-- FastAPI REST/OpenAPI with SQLAlchemy 2, Pydantic v2 and Alembic migrations.
-- 14 allowlisted tools with runtime schemas and risk classification.
-- Real task and event CRUD; reminders are **local records**, not push notifications.
-- Human-in-the-loop for edit/delete, including reject, expiry, one-time consumption and audit entries.
-- Deterministic interactive demo without credentials, plus an **optional** OpenAI-compatible HTTP tool-calling adapter.
-- Python 3.14 GitHub Actions: Ruff, mypy schema check, pytest API integration, migrations, synthetic evaluation, packaging.
-- Loopback-only HTTP middleware and a loopback-bound CLI. **Do not deploy this as a public service.**
+- Create, list, retrieve, update, complete and delete tasks, with priority, optional due date and status.
+- Create, list, update and delete calendar events with timezone-aware start/end values.
+- Create, list and explicitly mark local reminders delivered; inspect pending reminders and daily summaries.
+- Use **14 allowlisted tools**, each with Pydantic input schemas, risk classification and structured outcomes.
+- Require human approval for sensitive task and event edits/deletions, with one-time tokens, expiry, rejection and audit traces.
+- Use a responsive local interface with chat, tasks, events, reminders, approval buttons and recent tool audit results.
+- Optionally invoke an OpenAI-compatible chat-completions endpoint through `httpx`, bounded by request timeout and tool-call count.
+- Test the adapter with a simulated network provider; the demo and CI make **no paid model calls**.
 
-## Quick start
+## Technology stack
 
-Requires Python 3.14 (package minimum: Python 3.12) and a local environment:
+| Area | Technology | Verified scope |
+| --- | --- | --- |
+| Runtime | Python 3.14 | Used in GitHub Actions; `pyproject.toml` declares Python >=3.12 |
+| API and server | FastAPI, Uvicorn | REST endpoints, ASGI server, OpenAPI/Swagger UI |
+| Validation and settings | Pydantic v2, Pydantic Settings | Strict schemas, typed environment configuration |
+| Persistence | SQLAlchemy 2, SQLite, Alembic | ORM models, local data, versioned migrations |
+| Optional AI transport | httpx | Operator-configured, optional LLM adapter; fake provider tested |
+| Browser interface | HTML, CSS, vanilla JavaScript | Responsive static interface; no React or Node build |
+| Quality | pytest, Ruff, mypy | Tests; lint/format; **schema-only** type check |
+| Automation | GitHub Actions, Python build | Hosted-runner CI, migrations, evaluation, packaging |
 
-```bash
+**Version interpretation:** FastAPI `0.115+` represents its declared minimum (`>=0.115,<1`), not an exact resolved version. Pydantic v2 and SQLAlchemy 2 are declared major-version ranges. Uvicorn, httpx, Pydantic Settings, SQLite and Alembic are deliberately not assigned unverified exact installed versions.
+
+## Architecture
+
+`Local browser / REST → FastAPI loopback gate → deterministic demo or optional LLM adapter → allowlisted tool manager → domain services → SQLAlchemy / SQLite`. Sensitive operations stop at an approval proposal until a real human confirms the one-time token. Tool execution results and bounded conversation history are stored locally.
+
+See the [Mermaid architecture diagram, ADRs and threat model](docs/architecture.md).
+
+## Requirements
+
+- Python **3.14 recommended** to match CI; package requirement **Python >=3.12**.
+- SQLite support (through Python) and a terminal to run local migrations.
+- No Docker, PostgreSQL, Redis, cloud services, Google account or paid API required.
+
+## Installation
+
+~~~bash
 python -m venv .venv
-# Linux/macOS:
-source .venv/bin/activate
+source .venv/bin/activate           # Linux / macOS
 # Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-cp .env.example .env          # Optional; Windows: copy .env.example .env
+python -m pip install -e ".[dev]"
+cp .env.example .env                # Optional; Windows: copy .env.example .env
 alembic upgrade head
+~~~
+
+Set environment values before running the server. The default SQLite path `./assistant.db` is relative to the current working directory.
+
+## Configuration
+
+| Environment variable | Meaning | Default |
+| --- | --- | --- |
+| `PA_DATABASE_URL` | SQLAlchemy database URL | `sqlite:///./assistant.db` |
+| `PA_MODE` | `demo` or `openai_compatible` | `demo` |
+| `PA_TIMEZONE` | Explicit IANA timezone | `UTC` |
+| `PA_HISTORY_LIMIT` | Messages loaded into model context | `12` |
+| `PA_HISTORY_RETENTION_DAYS` | Prune older messages on chat writes | `30` |
+| `PA_MAX_TOOL_CALLS` | Limit real LLM tool invocations per request | `4` (max 8) |
+| `PA_APPROVAL_TTL_SECONDS` | Approval expiration period | `600` |
+| `PA_LLM_BASE_URL` / `PA_LLM_MODEL` / `PA_LLM_API_KEY` | Optional provider settings | No API key configured |
+
+See [.env.example](.env.example). Never commit a real `.env` file or provider credentials.
+
+## Run locally
+
+~~~bash
 personal-ai-assistant
-```
+~~~
 
-Open **http://127.0.0.1:8000/** for a responsive demo, **/docs** for OpenAPI and **/health** for health status. The server listens on 127.0.0.1 only. Set `PA_TIMEZONE` explicitly to your IANA timezone; default UTC is a system convention, not a guess about the user.
+The CLI starts Uvicorn on `127.0.0.1:8000`, never on `0.0.0.0`.
 
-## Demo conversation (real SQLite operations)
+- **Demo UI:** http://127.0.0.1:8000/
+- **Interactive API docs:** http://127.0.0.1:8000/docs
+- **OpenAPI JSON:** http://127.0.0.1:8000/openapi.json
+- **Health:** http://127.0.0.1:8000/health
 
-```text
+## Example demo commands
+
+The offline demo accepts a **fixed English command grammar**, not unrestricted natural language. Inputs can contain translated task titles, but commands such as `create task:` remain in English.
+
+~~~text
 create task: Review my pull request
 list tasks
-update task: 1 | Review after CI       # Requires human approval
-delete task: 1                        # Requires human approval
+get task: 1
+complete task: 1
+update task: 1 | Review after CI
+delete task: 1
 create event: Demo | 2026-11-08T10:00:00+00:00 | 2026-11-08T11:00:00+00:00 | UTC
 list events
-create reminder: Review results | 2026-11-08T14:00:00+00:00
+create reminder: Review CI | 2026-11-08T14:00:00+00:00
 list reminders
 daily summary: 2026-11-08 | UTC
-```
+~~~
 
-Demo mode supports only listed patterns. It **does not** understand arbitrary natural language; for that, configure a real LLM adapter. Demo requests still call the same actual business services and persist to disk.
+Updating or deleting records returns `approval_required` until a human decides. Demo commands execute the **same real SQLite services** as the HTTP API.
 
-## REST and tool calling
+## REST API and tool catalog
 
-Typical REST endpoints: `GET/POST /api/tasks`, `PATCH/DELETE /api/tasks/{id}`, `GET/POST /api/events`, `GET/POST /api/reminders`, `POST /api/chat`, `GET /api/tools`, `GET /api/summary?day=2026-11-08&timezone=UTC`, `GET /api/audit`, `GET /api/history`.
+| Method | Endpoint | Operation |
+| --- | --- | --- |
+| GET | `/health`, `/docs`, `/openapi.json` | Health and API documentation |
+| GET / POST | `/api/tasks` | List / create tasks |
+| GET / PATCH / DELETE | `/api/tasks/{task_id}` | Retrieve / propose update / propose delete |
+| POST | `/api/tasks/{task_id}/complete` | Complete task |
+| GET / POST | `/api/events` | List / create local events |
+| PATCH / DELETE | `/api/events/{event_id}` | Propose update / delete |
+| GET / POST | `/api/reminders` | List / create local reminders |
+| POST | `/api/reminders/{reminder_id}/deliver` | Mark locally delivered |
+| GET | `/api/summary?day=2026-11-08&timezone=UTC` | Timezone-aware daily summary |
+| GET | `/api/tools`, `/api/audit`, `/api/history` | Tool catalog, audit, conversation history |
+| GET | `/api/approvals` | Pending proposals (no confirmation tokens) |
+| POST | `/api/approvals/{id}/approve`, `/reject` | Human decision with one-time token |
+| POST | `/api/chat` | Demo or optional LLM conversation |
 
-```bash
+~~~bash
 curl -X POST http://127.0.0.1:8000/api/chat \
-  -H 'Content-Type: application/json' \
+  -H "Content-Type: application/json" \
   -d '{"message":"create task: Document architecture"}'
-```
+~~~
 
-Tool registry: `create_task`, `list_tasks`, `get_task`, `update_task`, `complete_task`, `delete_task`, `create_event`, `list_events`, `update_event`, `delete_event`, `get_daily_summary`, `create_reminder`, `list_reminders`, `deliver_reminder`. Schemas are Pydantic-generated. All tools validate arguments and return structured status and actual data.
+**Tool catalog (14):** `create_task`, `list_tasks`, `get_task`, `update_task`, `complete_task`, `delete_task`; `create_event`, `list_events`, `update_event`, `delete_event`; `get_daily_summary`; `create_reminder`, `list_reminders`, `deliver_reminder`. Schemas and risk levels are exposed via `GET /api/tools`.
 
-## Human approval
+## Human-in-the-loop approval
 
-`update_task`, `delete_task`, `update_event`, `delete_event` return `approval_required` with the proposed changes, expiry, approval ID and a one-time human confirmation token. The browser renders **Approve once** / **Reject**; the API accepts `POST /api/approvals/{id}/approve` or `/reject` with `{"confirmation_token":"..."}`. No LLM tool has access to these approval routes or their confirmation tokens. Approval claims are atomically consumed before a sensitive operation; expired, rejected, repeated and invalid-token attempts cannot execute.
+Sensitive tools (`update_task`, `delete_task`, `update_event`, `delete_event`) first produce a proposal with an approval ID, proposed changes, expiry and a one-time confirmation token. The local browser offers **Approve once** and **Reject**. API clients send `{"confirmation_token":"..."}` to the corresponding decision endpoint. The token is hashed at rest, not sent to the LLM, and is consumed before execution. Invalid, rejected, expired and reused approvals cannot authorize a new operation.
 
-## Optional real LLM
+## Optional real LLM and costs
 
-Only deliberately opting in and supplying an API credential enables model calls:
+To deliberately enable model-based tool selection, configure:
 
-```dotenv
+~~~dotenv
 PA_MODE=openai_compatible
 PA_LLM_BASE_URL=https://api.openai.com/v1
 PA_LLM_MODEL=gpt-4o-mini
 PA_LLM_API_KEY=your-private-key
-```
+~~~
 
-**Real LLM requests may incur provider charges.** No such calls occur in the demo or CI. Provider responses use explicit `tools` definitions, JSON argument validation, timeouts, a maximum of four tool calls (configurable up to eight), usage fields when provided, and sanitized failures. The provider endpoint is an operator setting, never a user/model tool argument. The browser shows real tool outcomes. If the provider fails, the system reports failure.
+**Provider calls may cost money.** The optional adapter uses structured function schemas, argument validation, bounded tool calls, timeout handling and token usage when reported by the provider. The code path has been tested with a **simulated provider**, **not a live paid LLM**. The default offline demo and mandatory CI avoid paid APIs.
+
+## Automated tests and GitHub Actions
+
+~~~bash
+ruff check src tests scripts
+ruff format --check src tests scripts
+mypy src/personal_ai_assistant/schemas.py
+pytest --junitxml=pytest-results.xml
+python scripts/check_readme_badges.py pytest-results.xml
+python scripts/evaluate.py
+alembic upgrade head
+python -m build
+~~~
+
+The migration rollback check (`alembic downgrade base`) is run against a **throwaway CI database**; do not execute it against a database containing data you need.
+
+**Evidence:** [CI run #42477081665](https://github.com/RamonRDR/personal-ai-assistant/actions/runs/42477081665) on the development branch recorded **29 passed, 0 failed, 0 skipped, 1 warning** and **24/24 synthetic scenarios passed**. The warning comes from a third-party Starlette/httpx test-client deprecation notice.
+
+**Badge maintenance:** The `pytest 29 passing` badge is a **static snapshot** of that run, not a live test counter. CI generates `pytest-results.xml` and runs `scripts/check_readme_badges.py` to compare the observed passing count with **all three READMEs**. It also checks that badge sets and scenario counts match. Future changes to the test suite require updating the badges together in a reviewed PR; CI does **not** commit to the repository. The CI status badge is dynamic and currently points to `feat/personal-ai-assistant-v1` because `main` has not received this workflow. Once merged, update the badge to track `main`.
+
+GitHub-hosted CI runs Ruff lint/format, mypy on `schemas.py`, pytest API/security tests, Alembic upgrade/downgrade/re-upgrade, deterministic evaluation, package build and packaged UI verification. No automatic review, deploy, publication or merge occurs.
 
 ## Security and privacy
 
-The local demo has **no user authentication**. HTTP requests from remote peers are rejected. No Gmail, Google Calendar, bank account, shell, arbitrary filesystem or untrusted-URL network tools are implemented. The model can never authorize itself. Tool invocations and outcomes are recorded without raw arguments in audit logs; pending approvals contain proposed arguments and message history is limited to 30 days by default, pruned on chat interactions. SQLite and local backups remain under your control. Do not store sensitive real-world information in a public demo.
+Only loopback peers are accepted, and the CLI binds localhost. The app **has no login/authentication**, so it must **not** be exposed publicly. No shell execution, arbitrary file access, user-directed HTTP tools, banking actions, real Gmail or Google Calendar integrations exist. Human approval cannot be granted by an LLM tool. Audit logs record operation outcomes rather than raw arguments; pending approval proposals are stored in the local database. Chat retention defaults to 30 days and is pruned **when new chat exchanges occur**. Secure the local DB file and backup copies yourself.
 
-Threat model, architecture and known limitations: [Technical notes](docs/architecture.md).
+See [architecture and security notes](docs/architecture.md).
 
-## Tests, migrations and evaluation
+## Known limitations
 
-```bash
-ruff check src tests scripts
-ruff format --check src tests scripts
-pytest
-python scripts/evaluate.py
-alembic downgrade base && alembic upgrade head  # destructive to local data
-python -m build
-```
+- Offline demo is a limited command interpreter, **not open-ended AI**.
+- Live provider calls are optional and **not independently validated** in this version.
+- Reminders are local and pollable, **not automatically pushed** in the background.
+- No production authentication, multi-user tenancy, scheduler, remote hosting or encrypted-at-rest store.
+- A successful package build is not an end-to-end visual browser test or a deployment.
 
-`evals/scenarios.json` has **24 synthetic cases**, run against actual local tools in fresh SQLite databases. The evaluation script prints results when executed; this README does not claim any unevaluated score. CI uses standard GitHub-hosted runners, no paid credentials, no automatic deployment or merge. The final Codex Review is intentionally **not** part of CI and must be explicitly requested by the repository owner.
+## Repository structure
 
-### Current limitations
+| Path | Responsibility |
+| --- | --- |
+| `src/personal_ai_assistant/api.py` | HTTP routes, local access control, OpenAPI |
+| `assistant.py`, `prompts/system.txt` | Deterministic parser and optional LLM orchestration |
+| `tools.py`, `services.py` | Tool risk gates and domain operations |
+| `schemas.py`, `models.py`, `db.py`, `config.py` | Validation, SQLAlchemy models, sessions and settings |
+| `static/index.html`, `cli.py` | Local interface and server entry point |
+| `alembic/` | Database migrations |
+| `tests/`, `evals/`, `scripts/` | Tests, scenarios, reproducible badge verification |
+| `.github/workflows/ci.yml` | Read-only, hosted-runner validation |
+| `docs/architecture.md` | Mermaid diagram, decisions, threat model |
 
-- Only local tasks/events/reminders, no integration with real personal accounts.
-- No automatic external reminder delivery or always-on scheduler. Reminders are polled in the UI and can be marked delivered.
-- Deterministic demo is a fixed command interpreter, not conversational AI.
-- Not hardened as a multi-user SaaS; no authentication, encryption at rest, distributed locking or production hosting.
-- LLM evaluation requires a separately authorized provider and is not claimed by deterministic CI.
+## Possible future improvements
+
+Authentication and opt-in external integrations could be explored **only in a separately reviewed release**. Neither is implemented here.
+
+## Contributions
+
+Issues and proposed changes are welcome. Run the local checks before submitting a pull request; do not commit real credentials or personal datasets.
 
 ## License
 
-MIT. Copyright © 2026 Ramon Rodriguez.
+[MIT](LICENSE) · Copyright (c) 2026 Ramon Rodriguez.
