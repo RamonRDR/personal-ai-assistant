@@ -153,3 +153,36 @@ def test_remote_client_is_rejected_even_for_health():
 
     with TestClient(app, client=("203.0.113.99", 1234)) as external:
         assert external.get("/health").status_code == 403
+
+
+def test_dns_rebinding_and_malicious_host_blocked(client):
+    for host in ("evil.example:8000", "localhost.evil.example", "127.0.0.1.evil.example"):
+        assert client.get("/api/tasks", headers={"Host": host}).status_code == 403
+        blocked = client.post("/api/tasks", json={"title": "Attack"}, headers={"Host": host})
+        assert blocked.status_code == 403
+    assert client.get("/api/tasks").json() == []
+
+
+def test_cross_site_origin_referer_and_fetch_metadata_rejected(client):
+    bad_headers = [
+        {"Origin": "https://evil.example"},
+        {"Origin": "null"},
+        {"Referer": "https://evil.example/action"},
+        {"Sec-Fetch-Site": "cross-site"},
+        {"Sec-Fetch-Site": "same-site"},
+    ]
+    for headers in bad_headers:
+        assert client.post("/api/tasks", json={"title": "Attack"}, headers=headers).status_code == 403
+        assert client.get("/api/tasks", headers=headers).status_code == 403
+    assert client.get("/api/tasks").json() == []
+
+
+def test_mutating_request_requires_custom_header_even_when_bodyless(client):
+    from fastapi.testclient import TestClient
+
+    from personal_ai_assistant.api import app
+
+    with TestClient(app) as untrusted:
+        assert untrusted.post("/api/tasks", json={"title": "Attack"}).status_code == 403
+        assert untrusted.post("/api/tasks/1/complete").status_code == 403
+    assert client.post("/api/tasks", json={"title": "Allowed"}).json()["status"] == "success"

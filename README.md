@@ -165,6 +165,7 @@ Updating or deleting records returns `approval_required` until a human decides. 
 ~~~bash
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
+  -H "X-Local-Request: 1" \
   -d '{"message":"create task: Document architecture"}'
 ~~~
 
@@ -210,7 +211,7 @@ GitHub-hosted CI runs Ruff lint/format, mypy on `schemas.py`, pytest API/securit
 
 ## Security and privacy
 
-Only loopback peers are accepted, and the CLI binds localhost. The app **has no login/authentication**, so it must **not** be exposed publicly. No shell execution, arbitrary file access, user-directed HTTP tools, banking actions, real Gmail or Google Calendar integrations exist. Human approval cannot be granted by an LLM tool. Audit logs record operation outcomes rather than raw arguments; pending approval proposals are stored in the local database. Chat retention defaults to 30 days and is pruned **when new chat exchanges occur**. Secure the local DB file and backup copies yourself.
+Only loopback peers and trusted local Host values are accepted, and the CLI binds localhost. HTTP mutations require `X-Local-Request: 1`; cross-origin Origin, Referer and Fetch Metadata requests are rejected. Approved task/event deletion detaches linked reminders without deleting their messages or schedules. Pending approvals are bound to immutable per-record identities. The app **has no login/authentication**, so it must **not** be exposed publicly. No shell execution, arbitrary file access, user-directed HTTP tools, banking actions, real Gmail or Google Calendar integrations exist. Human approval cannot be granted by an LLM tool. Audit logs record operation outcomes rather than raw arguments; pending approval proposals are stored in the local database. Chat retention defaults to 30 days and is pruned **when new chat exchanges occur**. Secure the local DB file and backup copies yourself.
 
 See [architecture and security notes](docs/architecture.md).
 

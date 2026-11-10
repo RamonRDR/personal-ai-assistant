@@ -51,3 +51,9 @@ Synthetic commands execute against fresh databases with no LLM API. CI runs Pyth
 - **Reminders:** polling and explicit mark-delivered are supported, but there are no operating-system notifications or background delivery guarantees.
 - **History:** retention cleanup happens on chat writes; inactive databases need operator-managed purge if required.
 - **No automatic deployment, review request, merge or paid API invocation in CI.**
+
+## Security review follow-ups (Codex)
+
+- **DNS rebinding / CSRF:** The HTTP middleware enforces the local socket peer, exact allowlisted Host values, same-origin Origin/Referer/Fetch Metadata, and `X-Local-Request: 1` for mutations. The browser UI and documented curl mutations supply the required header. This is a defense for a local single-user demo, not production authentication.
+- **Approval identity:** Tasks/events have immutable random `resource_identity` UUIDs with unique indexes. Proposals retain the target identity and verify it again before execution. Existing databases receive backfilled UUIDs. Pending approvals created before the upgrade are rejected, never executed.
+- **Linked reminders:** An approved task/event deletion transactionally **unlinks** reminders from the deleted parent and preserves their messages, dates, and any other parent link. The response includes `detached_reminders`.

@@ -165,6 +165,7 @@ Atualizar ou excluir retorna `approval_required` até uma decisão humana. O mod
 ~~~bash
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
+  -H "X-Local-Request: 1" \
   -d '{"message":"create task: Documentar arquitetura"}'
 ~~~
 
@@ -210,7 +211,7 @@ O CI usa runners do GitHub e verifica Ruff lint/format, mypy em `schemas.py`, py
 
 ## Segurança e privacidade
 
-Apenas conexões locais são permitidas, e a CLI escuta em localhost. O aplicativo **não tem autenticação** e **não deve ser exposto publicamente**. Não existem execução de shell, acesso arbitrário a arquivos, chamadas HTTP definidas pelo modelo, movimentações financeiras, Gmail nem Google Calendar reais. Uma ferramenta do LLM não pode conceder aprovação humana. Logs registram resultados, não argumentos brutos; propostas de aprovação ficam no SQLite local. O histórico padrão de 30 dias é limpo **durante novas mensagens**. Proteja o arquivo SQLite e seus backups.
+Apenas conexões locais e cabeçalhos Host autorizados são aceitos, e a CLI escuta em localhost. Mutações HTTP exigem `X-Local-Request: 1`, com bloqueio de Origin, Referer e Fetch Metadata entre origens. Exclusões aprovadas desvinculam lembretes sem apagar suas mensagens ou horários. Aprovações são vinculadas à identidade imutável do registro. O aplicativo **não tem autenticação** e **não deve ser exposto publicamente**. Não existem execução de shell, acesso arbitrário a arquivos, chamadas HTTP definidas pelo modelo, movimentações financeiras, Gmail nem Google Calendar reais. Uma ferramenta do LLM não pode conceder aprovação humana. Logs registram resultados, não argumentos brutos; propostas de aprovação ficam no SQLite local. O histórico padrão de 30 dias é limpo **durante novas mensagens**. Proteja o arquivo SQLite e seus backups.
 
 Veja as [notas de arquitetura e segurança](docs/architecture.md).
 

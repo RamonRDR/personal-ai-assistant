@@ -165,6 +165,7 @@ Las actualizaciones o eliminaciones devuelven `approval_required` hasta una deci
 ~~~bash
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
+  -H "X-Local-Request: 1" \
   -d '{"message":"create task: Documentar arquitectura"}'
 ~~~
 
@@ -210,7 +211,7 @@ GitHub Actions comprueba Ruff lint/formato, mypy en `schemas.py`, pytest de API/
 
 ## Seguridad y privacidad
 
-Solo se aceptan conexiones desde loopback, y la CLI escucha en localhost. La aplicación **carece de autenticación** y **no debe publicarse**. No existen shell, archivos arbitrarios, herramientas HTTP con URLs escogidas por el modelo, acciones financieras, Gmail ni Google Calendar reales. Una herramienta LLM no puede concederse aprobación humana. La auditoría guarda resultados, no argumentos completos; las propuestas permanecen en SQLite local. La retención predeterminada de 30 días se aplica **cuando llegan nuevas conversaciones**. Protege el archivo SQLite y sus copias.
+Solo se aceptan conexiones locales y cabeceras Host permitidas, y la CLI escucha en localhost. Las mutaciones HTTP requieren `X-Local-Request: 1`; se bloquean Origin, Referer y Fetch Metadata de otros orígenes. Las eliminaciones aprobadas desvinculan recordatorios sin borrar sus mensajes ni horarios. Las aprobaciones se vinculan a la identidad inmutable del registro. La aplicación **carece de autenticación** y **no debe publicarse**. No existen shell, archivos arbitrarios, herramientas HTTP con URLs escogidas por el modelo, acciones financieras, Gmail ni Google Calendar reales. Una herramienta LLM no puede concederse aprobación humana. La auditoría guarda resultados, no argumentos completos; las propuestas permanecen en SQLite local. La retención predeterminada de 30 días se aplica **cuando llegan nuevas conversaciones**. Protege el archivo SQLite y sus copias.
 
 Consulta las [notas técnicas de arquitectura y seguridad](docs/architecture.md).
 
