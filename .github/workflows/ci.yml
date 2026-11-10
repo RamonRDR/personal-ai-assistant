@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: ["feat/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-assistant-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python 3.14 · quality & integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install project
+        run: python -m pip install -e ".[dev]"
+      - name: Ruff lint
+        run: ruff check src tests scripts
+      - name: Ruff formatting
+        run: ruff format --check src tests scripts
+      - name: Type validation
+        run: mypy src/personal_ai_assistant/schemas.py
+      - name: Pytest unit and API integration
+        run: pytest --junitxml=pytest-results.xml
+      - name: Verify README badge counts from pytest report
+        run: python scripts/check_readme_badges.py pytest-results.xml
+      - name: Migration upgrade / downgrade / re-upgrade
+        env:
+          PA_DATABASE_URL: sqlite:///./ci-migrations.db
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+      - name: Evaluate 24 deterministic scenarios
+        run: python scripts/evaluate.py
+      - name: Package build
+        run: python -m build
+      - name: Confirm packaged local UI
+        run: python -c "from importlib.resources import files; assert files('personal_ai_assistant').joinpath('static/index.html').is_file()"
