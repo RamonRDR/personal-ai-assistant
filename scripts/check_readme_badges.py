@@ -15,6 +15,10 @@ READMES = ("README.md", "README.pt-BR.md", "README.es.md")
 SHIELDS = re.compile(r"https://img[.]shields[.]io/badge/[^)\s]+")
 PYTEST = re.compile(r"/badge/pytest-(\d+)%20passing-")
 EVAL = re.compile(r"/badge/Synthetic%20Evals-(\d+)%2F(\d+)%20passing-")
+CI_BADGE = (
+    "https://github.com/RamonRDR/personal-ai-assistant/"
+    "actions/workflows/ci.yml/badge.svg?branch=main"
+)
 
 
 def verify(junit_path: Path) -> None:
@@ -41,6 +45,8 @@ def verify(junit_path: Path) -> None:
             raise ValueError(f"{path}: missing centered header")
         if any(label not in text for label in READMES):
             raise ValueError(f"{path}: missing language navigation")
+        if text.count(CI_BADGE) != 1:
+            raise ValueError(f"{path}: CI badge must track main exactly once")
         matches = PYTEST.findall(text)
         if matches != [str(passed)]:
             raise ValueError(f"{path}: pytest badge {matches} != {passed} passing cases")
